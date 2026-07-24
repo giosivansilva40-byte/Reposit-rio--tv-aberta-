@@ -1,20 +1,225 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Rio TV Aberta - TV e Rádios abertas com Assistente de IA profissional. Transmissão ao vivo de canais brasileiros." />
-    <meta name="keywords" content="TV aberta, Rádio, Transmissão ao vivo, HLS, IA, Assistente virtual" />
-    <meta name="theme-color" content="#000000" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-    
-    <title>RIO TV ABERTA - TV e RÁDIO COM IA | HTTP://RIOTVABERTA.COM.BR</title>
-    
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='80' font-weight='bold' fill='%2322c55e'>▶</text></svg>" />
-  </head>
-  <body class="bg-black">
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="Rio TV Aberta Player - Assista TV Online, Rádio e muito mais">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Rio TV Aberta">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23000' width='192' height='192'/><text x='50%' y='50%' font-size='100' fill='%23FFD700' text-anchor='middle' dominant-baseline='middle' font-family='Arial'>TV</text></svg>">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Rio TV Aberta Player - TV Online, Rádio e Streaming</title>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="logo">
+                <i class="fas fa-tv"></i>
+                <span>Rio TV Aberta</span>
+            </div>
+            
+            <div class="navbar-search">
+                <input type="text" id="searchInput" class="search-input" placeholder="Buscar canal ou rádio...">
+                <button class="search-btn" onclick="buscarCanal()">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+
+            <div class="navbar-icons">
+                <button class="btn-ia" title="Assistente IA" onclick="toggleAssistenteIA()">
+                    <i class="fas fa-robot"></i>
+                    <span>IA</span>
+                </button>
+                <button class="btn-share" title="Compartilhar" onclick="compartilharApp()">
+                    <i class="fas fa-share-alt"></i>
+                </button>
+                <button class="btn-download" title="Instalar Chrome App" onclick="instalarApp()">
+                    <i class="fas fa-download"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Menu Lateral -->
+    <div class="sidebar">
+        <div class="menu-toggle" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+        </div>
+        
+        <div class="menu-items">
+            <button class="menu-item active" onclick="mostrarAbas('tv')">
+                <i class="fas fa-tv"></i> TV Aberta
+            </button>
+            <button class="menu-item" onclick="mostrarAbas('radio')">
+                <i class="fas fa-radio"></i> Rádio
+            </button>
+            <button class="menu-item" onclick="mostrarAbas('favoritos')">
+                <i class="fas fa-heart"></i> Favoritos
+            </button>
+            <button class="menu-item" onclick="mostrarAbas('historico')">
+                <i class="fas fa-history"></i> Histórico
+            </button>
+            <button class="menu-item" onclick="mostrarAbas('configuracoes')">
+                <i class="fas fa-cog"></i> Configurações
+            </button>
+        </div>
+    </div>
+
+    <!-- Container Principal -->
+    <div class="main-container">
+        <!-- Player -->
+        <div class="player-section">
+            <div class="player-container">
+                <div class="player-video">
+                    <iframe id="playerFrame" 
+                            width="100%" 
+                            height="100%" 
+                            src="" 
+                            frameborder="0" 
+                            allow="autoplay; fullscreen" 
+                            allowfullscreen>
+                    </iframe>
+                </div>
+                
+                <div class="player-controls">
+                    <button class="control-btn" onclick="playVideo()" title="Play">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="control-btn" onclick="pauseVideo()" title="Pausa">
+                        <i class="fas fa-pause"></i>
+                    </button>
+                    <button class="control-btn" onclick="toggleMute()" title="Mute">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                    <button class="control-btn" onclick="fullscreen()" title="Tela Cheia">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+
+                <div class="player-info">
+                    <h2 id="nomeCanal">Selecione um canal</h2>
+                    <p id="descricaoCanal">Clique em um canal para começar</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div class="content-area">
+            <!-- Aba TV -->
+            <div id="tv" class="aba-content aba-ativa">
+                <div class="filtros">
+                    <button class="filtro-btn ativo" onclick="filtrarCanais('todos')">Todos</button>
+                    <button class="filtro-btn" onclick="filtrarCanais('esportes')">Esportes</button>
+                    <button class="filtro-btn" onclick="filtrarCanais('filmes')">Filmes</button>
+                    <button class="filtro-btn" onclick="filtrarCanais('noticias')">Notícias</button>
+                    <button class="filtro-btn" onclick="filtrarCanais('infantil')">Infantil</button>
+                </div>
+
+                <div id="canalGrid" class="canal-grid">
+                    <!-- Canais carregados dinamicamente -->
+                </div>
+            </div>
+
+            <!-- Aba Rádio -->
+            <div id="radio" class="aba-content">
+                <div class="radio-container">
+                    <div class="radio-player">
+                        <div class="radio-display">
+                            <h3 id="nomeRadio">Selecione uma rádio</h3>
+                            <p id="frequenciaRadio">FM/AM</p>
+                            <div class="radio-equalizer">
+                                <span></span><span></span><span></span><span></span><span></span>
+                            </div>
+                        </div>
+                        <div class="radio-controls">
+                            <button onclick="radioPlay()" class="radio-btn">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button onclick="radioPause()" class="radio-btn">
+                                <i class="fas fa-pause"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="radioGrid" class="radio-grid">
+                        <!-- Rádios carregadas dinamicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba Favoritos -->
+            <div id="favoritos" class="aba-content">
+                <div id="favoritosGrid" class="canal-grid">
+                    <!-- Favoritos carregados dinamicamente -->
+                </div>
+            </div>
+
+            <!-- Aba Histórico -->
+            <div id="historico" class="aba-content">
+                <div id="historicoList" class="historico-list">
+                    <!-- Histórico carregado dinamicamente -->
+                </div>
+            </div>
+
+            <!-- Aba Configurações -->
+            <div id="configuracoes" class="aba-content">
+                <div class="config-section">
+                    <h3>Aparência</h3>
+                    <label class="config-item">
+                        <input type="checkbox" id="modoDarkMode" onchange="alternarTema()" checked>
+                        Modo Escuro
+                    </label>
+                    <label class="config-item">
+                        <input type="checkbox" id="autoPlay" onchange="salvarConfig()" checked>
+                        Reprodução Automática
+                    </label>
+
+                    <h3>Notificações</h3>
+                    <label class="config-item">
+                        <input type="checkbox" id="notificacoes" onchange="salvarConfig()" checked>
+                        Ativar Notificações
+                    </label>
+
+                    <h3>Informações</h3>
+                    <p>Versão: 1.0.0</p>
+                    <p>Site: <a href="https://riotvabertaplayer.com.br" target="_blank">riotvabertaplayer.com.br</a></p>
+                    <button onclick="limparCache()" class="btn-config">Limpar Cache</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assistente IA -->
+    <div id="assistenteIA" class="assistente-ia">
+        <div class="ia-header">
+            <h3>Assistente IA</h3>
+            <button onclick="fecharAssistenteIA()" class="close-ia">×</button>
+        </div>
+        <div id="iaChat" class="ia-chat">
+            <!-- Mensagens carregadas dinamicamente -->
+        </div>
+        <div class="ia-input">
+            <input type="text" id="iaInput" placeholder="Faça uma pergunta..." onkeypress="if(event.key==='Enter') enviarMensagemIA()">
+            <button onclick="enviarMensagemIA()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js');
+        }
+    </script>
+
+    <script src="app.js"></script>
+    <script src="ia.js"></script>
+</body>
 </html>
