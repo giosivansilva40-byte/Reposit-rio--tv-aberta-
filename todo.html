@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="description" content="TaskFlow - Aplicativo de To-Do List com armazenamento local">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TaskFlow">
+    <link rel="manifest" href="manifest-todo.json">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%236366f1' width='192' height='192'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-weight='bold'>✓</text></svg>">
+    <link rel="stylesheet" href="styles-todo.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>TaskFlow - To-Do List com Local Storage</title>
+</head>
+<body>
+    <!-- Container Principal -->
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-check-circle"></i>
+                    <h1>TaskFlow</h1>
+                </div>
+                <p class="subtitle">Gerenciador de Tarefas Inteligente</p>
+            </div>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number" id="totalTasks">0</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeTasks">0</div>
+                <div class="stat-label">Ativas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completedTasks">0</div>
+                <div class="stat-label">Concluídas</div>
+            </div>
+        </div>
+
+        <!-- Input Section -->
+        <section class="input-section">
+            <div class="input-wrapper">
+                <input 
+                    type="text" 
+                    id="taskInput" 
+                    class="task-input" 
+                    placeholder="Adicione uma nova tarefa..."
+                    autocomplete="off"
+                >
+                <div class="input-buttons">
+                    <select id="prioritySelect" class="priority-select">
+                        <option value="low">Baixa</option>
+                        <option value="medium" selected>Média</option>
+                        <option value="high">Alta</option>
+                    </select>
+                    <button class="btn-add" onclick="adicionarTarefa()">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filtrarTarefas('todas')">
+                    <i class="fas fa-list"></i> Todas
+                </button>
+                <button class="filter-btn" onclick="filtrarTarefas('ativas')">
+                    <i class="fas fa-circle-notch"></i> Ativas
+                </button>
+                <button class="filter-btn" onclick="filtrarTarefas('concluidas')">
+                    <i class="fas fa-check"></i> Concluídas
+                </button>
+                <button class="filter-btn" onclick="filtrarTarefas('alta')">
+                    <i class="fas fa-exclamation-circle"></i> Alta Prioridade
+                </button>
+            </div>
+        </section>
+
+        <!-- Tasks List -->
+        <section class="tasks-section">
+            <div class="sort-options">
+                <label for="sortSelect">Ordenar por:</label>
+                <select id="sortSelect" onchange="ordenarTarefas()">
+                    <option value="data">Data de Criação</option>
+                    <option value="prioridade">Prioridade</option>
+                    <option value="nome">Nome (A-Z)</option>
+                    <option value="concluidas">Concluídas Primeiro</option>
+                </select>
+            </div>
+
+            <div id="tasksList" class="tasks-list">
+                <!-- Tasks carregadas dinamicamente -->
+            </div>
+
+            <div id="emptyState" class="empty-state">
+                <i class="fas fa-tasks"></i>
+                <p>Nenhuma tarefa por aqui</p>
+                <small>Adicione uma nova tarefa para começar!</small>
+            </div>
+        </section>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <button class="btn-toolbar" onclick="limparConcluidas()" title="Limpar Concluídas">
+                <i class="fas fa-trash"></i>
+                <span>Limpar Concluídas</span>
+            </button>
+            <button class="btn-toolbar" onclick="exportarTarefas()" title="Exportar">
+                <i class="fas fa-download"></i>
+                <span>Exportar</span>
+            </button>
+            <button class="btn-toolbar" onclick="importarTarefas()" title="Importar">
+                <i class="fas fa-upload"></i>
+                <span>Importar</span>
+            </button>
+            <button class="btn-toolbar" onclick="limparTudo()" title="Limpar Tudo">
+                <i class="fas fa-broom"></i>
+                <span>Limpar Tudo</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal de Edição -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Editar Tarefa</h2>
+                <button class="modal-close" onclick="fecharModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="editInput" class="modal-input" placeholder="Texto da tarefa">
+                <select id="editPriority" class="modal-select">
+                    <option value="low">Baixa Prioridade</option>
+                    <option value="medium">Média Prioridade</option>
+                    <option value="high">Alta Prioridade</option>
+                </select>
+                <textarea id="editNotes" class="modal-textarea" placeholder="Notas (opcional)"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
+                <button class="btn-save" onclick="salvarEdicao()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Input Oculto para Importação -->
+    <input type="file" id="fileInput" accept=".json" style="display:none;">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker-todo.js').catch(() => {});
+        }
+    </script>
+
+    <script src="todo-app.js"></script>
+</body>
+</html>
